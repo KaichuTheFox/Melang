@@ -1,0 +1,44 @@
+#include "melang/source.hpp"
+
+#include <Windows.h>
+#include <fstream>
+#include <limits>
+
+namespace melang {
+std::string pathText(const std::filesystem::path& path) {
+    const auto utf8 = path.u8string();
+    return {utf8.begin(), utf8.end()};
+}
+
+std::string readSource(const std::filesystem::path& path) {
+    std::ifstream input(path, std::ios::binary | std::ios::ate);
+    if (!input) {
+        throw std::runtime_error("Cannot open source file: " + pathText(path));
+    }
+
+    const auto size = input.tellg();
+    if (size < 0 || size > (std::numeric_limits<int>::max)()) {
+        throw std::runtime_error("Cannot read source file or file is too large: " + pathText(path));
+    }
+    std::string source(static_cast<std::size_t>(size), '\0');
+    input.seekg(0);
+    if (!input.read(source.data(), size)) {
+        throw std::runtime_error("Cannot read source file: " + pathText(path));
+    }
+    validateSource(source);
+    return source;
+}
+
+void validateSource(std::string& source) {
+    if (source.size() > (std::numeric_limits<int>::max)()) {
+        throw Diagnostic({1, 1}, "ML1000", "Source exceeds the supported size.");
+    }
+    if (source.starts_with("\xEF\xBB\xBF")) {
+        source.erase(0, 3);
+    }
+    if (!source.empty() && !MultiByteToWideChar(
+            CP_UTF8, MB_ERR_INVALID_CHARS, source.data(), static_cast<int>(source.size()), nullptr, 0)) {
+        throw Diagnostic({1, 1}, "ML1000", "Source must be valid UTF-8.");
+    }
+}
+}

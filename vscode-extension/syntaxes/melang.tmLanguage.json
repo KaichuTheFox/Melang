@@ -1,0 +1,18 @@
+{
+  "name": "Melang",
+  "scopeName": "source.melang",
+  "patterns": [
+    { "name": "comment.line.double-slash.melang", "match": "//.*$" },
+    { "name": "string.quoted.double.melang", "begin": "\"", "end": "\"|$" },
+    { "name": "storage.type.melang", "match": "\\b(void|char|short|int|long|float|double|bool|string|var|def)\\b" },
+    { "name": "storage.type.struct.melang", "match": "\\b(struct|class)\\b" },
+    { "name": "storage.modifier.melang", "match": "\\b(public|private)\\b" },
+    { "name": "keyword.operator.new.melang", "match": "\\bnew\\b" },
+    { "name": "variable.language.melang", "match": "\\bthis\\b" },
+    { "name": "keyword.control.melang", "match": "\\b(return|if|elif|else|while|for|foreach|in|break|continue|import)\\b" },
+    { "name": "constant.language.melang", "match": "\\b(true|false|null)\\b" },
+    { "name": "constant.numeric.melang", "match": "\\b[0-9]+(?:\\.[0-9]+)?(?:[eE][+-]?[0-9]+)?\\b" },
+    { "name": "entity.name.function.melang", "match": "\\bmain\\b(?=\\s*\\()" },
+    { "name": "support.function.melang", "match": "\\b(print|append|readText|writeText)\\b(?=\\s*\\()" }
+  ]
+}

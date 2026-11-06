@@ -1,6 +1,6 @@
 #include <Windows.h>
 
-extern "C" void melang_main();
+extern "C" void moulang_main();
 
 namespace {
 const char* errorSite = nullptr;
@@ -28,12 +28,12 @@ void reportErrorText(const char* text, DWORD length) {
 }
 }
 
-extern "C" void melang_set_error_site(const char* text, int length) {
+extern "C" void moulang_set_error_site(const char* text, int length) {
     errorSite = text;
     errorSiteLength = static_cast<DWORD>(length);
 }
 
-extern "C" [[noreturn]] void melang_runtime_error(const char* message, int length) {
+extern "C" [[noreturn]] void moulang_runtime_error(const char* message, int length) {
     if (errorSiteLength) reportErrorText(errorSite, errorSiteLength);
     reportErrorText(message, static_cast<DWORD>(length));
     ExitProcess(1);
@@ -42,11 +42,11 @@ extern "C" [[noreturn]] void melang_runtime_error(const char* message, int lengt
 namespace {
 template <size_t size>
 [[noreturn]] void runtimeError(const char (&message)[size]) {
-    melang_runtime_error(message, static_cast<int>(size - 1));
+    moulang_runtime_error(message, static_cast<int>(size - 1));
 }
 
 [[noreturn]] void outputError() {
-    runtimeError("Melang runtime: cannot write standard output.\r\n");
+    runtimeError("Moulang runtime: cannot write standard output.\r\n");
 }
 
 void writeBytes(HANDLE output, const char* data, DWORD length) {
@@ -77,7 +77,7 @@ void writeWide(HANDLE output, const wchar_t* data, DWORD length) {
 }
 }
 
-extern "C" void melang_print(const char* text, int length) {
+extern "C" void moulang_print(const char* text, int length) {
     const HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD mode;
     if (!GetConsoleMode(output, &mode)) {
@@ -101,12 +101,12 @@ extern "C" void melang_print(const char* text, int length) {
     writeWide(output, L"\r\n", 2);
 }
 
-extern "C" [[noreturn]] void melang_entry() {
-    melang_main();
+extern "C" [[noreturn]] void moulang_entry() {
+    moulang_main();
     ExitProcess(0);
 }
 
-extern "C" void melang_print_int(int value) {
+extern "C" void moulang_print_int(int value) {
     char buffer[11];
     char* const end = buffer + sizeof(buffer);
     char* digit = end;
@@ -118,31 +118,31 @@ extern "C" void melang_print_int(int value) {
         magnitude /= 10;
     } while (magnitude != 0);
     if (negative) *--digit = '-';
-    melang_print(digit, static_cast<int>(end - digit));
+    moulang_print(digit, static_cast<int>(end - digit));
 }
 
-extern "C" void melang_print_bool(int value) {
+extern "C" void moulang_print_bool(int value) {
     if (value) {
-        melang_print("true", 4);
+        moulang_print("true", 4);
     } else {
-        melang_print("false", 5);
+        moulang_print("false", 5);
     }
 }
 
-extern "C" int melang_divide(int left, int right) {
+extern "C" int moulang_divide(int left, int right) {
     if (right == 0) {
-        runtimeError("Melang runtime: division by zero.\r\n");
+        runtimeError("Moulang runtime: division by zero.\r\n");
     }
     if (left == (-2147483647 - 1) && right == -1) return left;
     return left / right;
 }
 
-extern "C" int melang_shift_count(int count, int width) {
-    if (count < 0 || count >= width) runtimeError("Melang runtime: invalid bit shift count.\r\n");
+extern "C" int moulang_shift_count(int count, int width) {
+    if (count < 0 || count >= width) runtimeError("Moulang runtime: invalid bit shift count.\r\n");
     return count;
 }
 
-extern "C" int melang_string_equal(const char* left, int leftSize, const char* right, int rightSize) {
+extern "C" int moulang_string_equal(const char* left, int leftSize, const char* right, int rightSize) {
     if (leftSize != rightSize) return 0;
     for (int i = 0; i < leftSize; ++i) {
         if (left[i] != right[i]) return 0;
@@ -158,15 +158,15 @@ struct SliceBuffer {
 };
 }
 
-extern "C" SliceBuffer* melang_slice_append(SliceBuffer* buffer, int length, int value) {
+extern "C" SliceBuffer* moulang_slice_append(SliceBuffer* buffer, int length, int value) {
     constexpr int maximum = 2147483647;
-    if (length == maximum) runtimeError("Melang runtime: slice length limit exceeded.\r\n");
+    if (length == maximum) runtimeError("Moulang runtime: slice length limit exceeded.\r\n");
     if (!buffer || buffer->used != length || length == buffer->capacity) {
         const int capacity = length < 4 ? 4 : (length > maximum / 2 ? maximum : length * 2);
         const auto heap = GetProcessHeap();
         auto* next = static_cast<SliceBuffer*>(HeapAlloc(heap, 0, sizeof(SliceBuffer)));
         auto* elements = static_cast<int*>(HeapAlloc(heap, 0, sizeof(int) * static_cast<size_t>(capacity)));
-        if (!next || !elements) runtimeError("Melang runtime: cannot allocate a slice.\r\n");
+        if (!next || !elements) runtimeError("Moulang runtime: cannot allocate a slice.\r\n");
         for (int i = 0; i < length; ++i) elements[i] = buffer->elements[i];
         next->capacity = capacity;
         next->elements = elements;
@@ -177,45 +177,45 @@ extern "C" SliceBuffer* melang_slice_append(SliceBuffer* buffer, int length, int
     return buffer;
 }
 
-extern "C" int melang_slice_get(const SliceBuffer* buffer, int length, int index) {
-    if (index < 0 || index >= length) runtimeError("Melang runtime: slice index out of bounds.\r\n");
+extern "C" int moulang_slice_get(const SliceBuffer* buffer, int length, int index) {
+    if (index < 0 || index >= length) runtimeError("Moulang runtime: slice index out of bounds.\r\n");
     return buffer->elements[index];
 }
 
-extern "C" const int* melang_slice_data(const SliceBuffer* buffer) {
+extern "C" const int* moulang_slice_data(const SliceBuffer* buffer) {
     return buffer ? buffer->elements : nullptr;
 }
 
-extern "C" const int* melang_view_start(const int* data, int length, int begin, int end) {
+extern "C" const int* moulang_view_start(const int* data, int length, int begin, int end) {
     if (begin < 0 || end < begin || end > length) {
-        runtimeError("Melang runtime: slice range out of bounds.\r\n");
+        runtimeError("Moulang runtime: slice range out of bounds.\r\n");
     }
     return begin ? data + begin : data;
 }
 
-extern "C" int melang_view_get(const int* data, int length, int index) {
-    if (index < 0 || index >= length) runtimeError("Melang runtime: slice index out of bounds.\r\n");
+extern "C" int moulang_view_get(const int* data, int length, int index) {
+    if (index < 0 || index >= length) runtimeError("Moulang runtime: slice index out of bounds.\r\n");
     return data[index];
 }
 
-extern "C" int melang_checked_array_index(int index, int length) {
-    if (index < 0 || index >= length) runtimeError("Melang runtime: fixed array index out of bounds.\r\n");
+extern "C" int moulang_checked_array_index(int index, int length) {
+    if (index < 0 || index >= length) runtimeError("Moulang runtime: fixed array index out of bounds.\r\n");
     return index;
 }
 
-extern "C" void* melang_allocate_object(size_t size) {
+extern "C" void* moulang_allocate_object(size_t size) {
     auto* object = HeapAlloc(GetProcessHeap(), 0, size ? size : 1);
-    if (!object) runtimeError("Melang runtime: cannot allocate an object.\r\n");
+    if (!object) runtimeError("Moulang runtime: cannot allocate an object.\r\n");
     return object;
 }
 
 namespace {
 void textPath(const char* source, int length, wchar_t (&path)[MAX_PATH]) {
     for (int i = 0; i < length; ++i) {
-        if (source[i] == '\0') runtimeError("Melang runtime: invalid text file path.\r\n");
+        if (source[i] == '\0') runtimeError("Moulang runtime: invalid text file path.\r\n");
     }
     const int size = MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, source, length, path, MAX_PATH - 1);
-    if (!size) runtimeError("Melang runtime: invalid text file path.\r\n");
+    if (!size) runtimeError("Moulang runtime: invalid text file path.\r\n");
     path[size] = L'\0';
 }
 
@@ -235,38 +235,38 @@ bool transferText(HANDLE file, char* input, const char* output, int length) {
 }
 }
 
-extern "C" void melang_read_text(const char* path, int pathLength, char** text, int* length) {
+extern "C" void moulang_read_text(const char* path, int pathLength, char** text, int* length) {
     wchar_t nativePath[MAX_PATH];
     textPath(path, pathLength, nativePath);
     const auto file = CreateFileW(nativePath, GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING,
         FILE_ATTRIBUTE_NORMAL, nullptr);
-    if (file == INVALID_HANDLE_VALUE) runtimeError("Melang runtime: cannot open text file.\r\n");
+    if (file == INVALID_HANDLE_VALUE) runtimeError("Moulang runtime: cannot open text file.\r\n");
     LARGE_INTEGER size;
     if (GetFileType(file) != FILE_TYPE_DISK || !GetFileSizeEx(file, &size) ||
         size.QuadPart < 0 || size.QuadPart > 2147483647) {
         CloseHandle(file);
-        runtimeError("Melang runtime: invalid text file size.\r\n");
+        runtimeError("Moulang runtime: invalid text file size.\r\n");
     }
     const auto count = static_cast<int>(size.QuadPart);
     auto* bytes = static_cast<char*>(HeapAlloc(GetProcessHeap(), 0, count ? count : 1));
     const bool read = bytes && transferText(file, bytes, nullptr, count);
     CloseHandle(file);
-    if (!read) runtimeError("Melang runtime: cannot read text file.\r\n");
+    if (!read) runtimeError("Moulang runtime: cannot read text file.\r\n");
     if (count && !MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, bytes, count, nullptr, 0)) {
-        runtimeError("Melang runtime: text file must be valid UTF-8.\r\n");
+        runtimeError("Moulang runtime: text file must be valid UTF-8.\r\n");
     }
     *text = bytes;
     *length = count;
 }
 
-extern "C" void melang_write_text(const char* path, int pathLength, const char* text, int length) {
+extern "C" void moulang_write_text(const char* path, int pathLength, const char* text, int length) {
     wchar_t nativePath[MAX_PATH];
     textPath(path, pathLength, nativePath);
     wchar_t absolute[MAX_PATH];
     wchar_t* leaf = nullptr;
     const DWORD size = GetFullPathNameW(nativePath, MAX_PATH, absolute, &leaf);
     if (!size || size >= MAX_PATH || !leaf || !*leaf) {
-        runtimeError("Melang runtime: invalid text file path.\r\n");
+        runtimeError("Moulang runtime: invalid text file path.\r\n");
     }
 
     wchar_t temporary[MAX_PATH];
@@ -274,7 +274,7 @@ extern "C" void melang_write_text(const char* path, int pathLength, const char* 
     *leaf = L'\0';
     const auto created = GetTempFileNameW(absolute, L"MEL", 0, temporary);
     *leaf = saved;
-    if (!created) runtimeError("Melang runtime: cannot create temporary text file.\r\n");
+    if (!created) runtimeError("Moulang runtime: cannot create temporary text file.\r\n");
     const auto file = CreateFileW(temporary, GENERIC_WRITE, 0, nullptr, TRUNCATE_EXISTING,
         FILE_ATTRIBUTE_NORMAL, nullptr);
     bool complete = false;
@@ -284,6 +284,6 @@ extern "C" void melang_write_text(const char* path, int pathLength, const char* 
     }
     if (!complete || !MoveFileExW(temporary, absolute, MOVEFILE_REPLACE_EXISTING)) {
         DeleteFileW(temporary);
-        runtimeError("Melang runtime: cannot write text file.\r\n");
+        runtimeError("Moulang runtime: cannot write text file.\r\n");
     }
 }

@@ -1,9 +1,9 @@
-#include "melang/parser.hpp"
+#include "moulang/parser.hpp"
 
 #include <charconv>
 #include <utility>
 
-namespace melang {
+namespace moulang {
 Token Parser::take() {
     previous_ = current_.kind;
     return std::exchange(current_, lexer_.next());

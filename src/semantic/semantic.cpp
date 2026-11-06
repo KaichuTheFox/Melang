@@ -1,11 +1,11 @@
-#include "melang/semantic.hpp"
+#include "moulang/semantic.hpp"
 
 #include <algorithm>
 #include <unordered_map>
 #include <unordered_set>
 #include <optional>
 
-namespace melang {
+namespace moulang {
 namespace {
 struct Variable {
     Type type;

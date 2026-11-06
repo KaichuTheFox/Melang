@@ -2,6 +2,6 @@
   "Main entry point": {
     "prefix": "main",
     "body": ["main() {", "\t$0", "}"],
-    "description": "Create a Melang entry point"
+    "description": "Create a Moulang entry point"
   }
 }

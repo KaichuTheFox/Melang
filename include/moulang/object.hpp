@@ -1,8 +1,8 @@
 #pragma once
 
-#include "melang/ast.hpp"
+#include "moulang/ast.hpp"
 
-namespace melang {
+namespace moulang {
 enum class Optimization { none, speed, aggressive };
 
 void emitObject(const Program& program, const std::filesystem::path& path, Optimization optimization);

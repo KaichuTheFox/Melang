@@ -1,8 +1,8 @@
 #pragma once
 
-#include "melang/object.hpp"
+#include "moulang/object.hpp"
 
-namespace melang {
+namespace moulang {
 void buildExecutable(const Program& program, const std::filesystem::path& output, Optimization optimization);
 unsigned long runExecutable(const Program& program);
 }

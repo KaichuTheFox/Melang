@@ -1,10 +1,10 @@
 #pragma once
 
-namespace melang {
+namespace moulang {
 inline constexpr auto version = "@PROJECT_VERSION@";
-inline constexpr auto linkerPath = LR"(@MELANG_LINKER@)";
-inline constexpr auto kernel32Path = LR"(@MELANG_KERNEL32@)";
-inline constexpr auto staticCrtPath = LR"(@MELANG_LIBCMT@)";
-inline constexpr auto staticCppPath = LR"(@MELANG_LIBCPMT@)";
-inline constexpr auto staticVcruntimePath = LR"(@MELANG_LIBVCRUNTIME@)";
+inline constexpr auto linkerPath = LR"(@MOULANG_LINKER@)";
+inline constexpr auto kernel32Path = LR"(@MOULANG_KERNEL32@)";
+inline constexpr auto staticCrtPath = LR"(@MOULANG_LIBCMT@)";
+inline constexpr auto staticCppPath = LR"(@MOULANG_LIBCPMT@)";
+inline constexpr auto staticVcruntimePath = LR"(@MOULANG_LIBVCRUNTIME@)";
 }

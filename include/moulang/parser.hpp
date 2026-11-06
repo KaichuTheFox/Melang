@@ -1,12 +1,12 @@
 #pragma once
 
-#include "melang/ast.hpp"
-#include "melang/lexer.hpp"
+#include "moulang/ast.hpp"
+#include "moulang/lexer.hpp"
 
 #include <unordered_map>
 #include <optional>
 
-namespace melang {
+namespace moulang {
 class Parser {
 public:
     Parser(std::string_view source, std::size_t file, std::vector<TypeReference>& typeReferences)

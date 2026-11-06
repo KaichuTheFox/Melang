@@ -1,50 +1,50 @@
-# Melang 언어 명세
+# Moulang language specification
 
-## 현재 지원하는 문법
+## Source files and entry point
 
-- UTF-8 소스의 파일 시작 BOM과 LF, CRLF 및 CR 줄바꿈을 처리합니다.
-- 진입점은 매개변수가 없는 `main()` 또는 `void main()`이며 소스에 정확히 하나 있어야 합니다.
-- 중괄호로 블록을 열고 닫습니다. 한 블록에 여러 문장이 있으면 줄바꿈으로 구분합니다.
-- `print(표현식)`은 숫자, `bool`, `string` 값을 출력한 뒤 줄을 바꿉니다. 문자열은 큰따옴표 안에 한 줄로 씁니다. 빈 문자열과 UTF-8 문자열을 사용할 수 있습니다. 문자열 이스케이프는 추후 명세에서 정합니다.
-- 괄호 안에서는 토큰 사이에 줄바꿈을 넣을 수 있습니다. `//`부터 줄 끝까지 주석으로 처리합니다.
-- `main`의 정상 종료 코드는 0입니다.
-- `int a = 10`, `bool ready = true`, `string label = "Result"`처럼 지역 변수를 선언합니다. 선언에는 초기값이 필요하며, `var`는 초기값의 타입을 컴파일 시간에 추론합니다. `a = 20`처럼 재대입할 때도 선언된 타입을 사용합니다.
-- 우선순위는 높은 순서부터 괄호와 인덱싱, 단항 `-`와 `!`, `*`와 `/`, `+`와 `-`, 순서 비교, 동등 비교, `&&`, `||`, `??`입니다. `??`는 오른쪽부터 묶고 나머지 이항 연산자는 왼쪽부터 묶습니다. 논리 연산과 `??`는 왼쪽 값으로 결과를 결정할 수 있으면 오른쪽을 평가하지 않습니다.
-- 숫자는 `char`(부호 없는 8비트), `short`(부호 있는 16비트), `int`와 `long`(각각 부호 있는 32비트), `float`(32비트), `double`(64비트)을 지원합니다. 정수 리터럴은 `int`이고 소수점이나 지수가 있는 리터럴은 `double`입니다. `char(65)`는 바이트 값 65로 출력됩니다. 같은 폭을 가진 `int`와 `long`의 오버로드 규칙은 추후 명세에서 정합니다.
-- 산술과 비교는 같은 숫자 타입을 유지하거나 두 피연산자의 값을 모두 보존할 수 있는 공통 타입을 사용합니다. 예를 들어 `float`와 `int`의 공통 타입은 `double`입니다. 숫자 지역 변수는 복합 대입과 문장 형태의 후위 `++`, `--`를 지원합니다. 문자열의 `==`, `!=`는 UTF-8 바이트를 비교하며 `bool`은 `true` 또는 `false`로 출력합니다.
-- 정수 산술 결과는 해당 타입의 비트 폭에서 순환합니다. 정수 나눗셈은 0 방향으로 절삭하며 0으로 나누면 런타임 오류로 종료합니다. 실수 연산은 IEEE 754를 따릅니다.
-- 대입, 함수 인수 및 반환에서 숫자의 암시적 변환은 원본 타입의 모든 값과 정밀도를 보존해야 합니다. `float`에는 `short`를 암시적으로 넣을 수 있으며, `int`를 넣으려면 `float(value)`로 변환합니다.
-- `int(value)`와 같은 명시적 정수 변환은 하위 비트를 보존합니다. 실수는 먼저 가장 가까운 정수로 반올림하며 정확히 중간이면 짝수 쪽을 선택합니다. NaN·무한대를 정수로 변환하거나 유한한 `double`을 `float` 범위 밖에서 변환하면 런타임 오류와 종료 코드 1을 반환합니다.
-- 사용자 함수는 타입을 명시한 매개변수를 받습니다. 반환형을 명시하거나 `def`로 추론합니다. 값이 있는 함수는 모든 분기에서 반환해야 하며, 컴파일러가 루프의 종료 여부를 보수적으로 판단합니다. 재귀의 반환형 추론에 순환 의존성이 생기면 명시적 반환형이 필요합니다.
-- `if`·`elif`·`else`와 `while`의 조건은 `bool`입니다. `for (i=0 in i++(5))`는 시작과 상한을 한 번 평가하고 상한 직전까지 1씩 증가합니다. 반복 변수는 반복문 안에서만 보이며, `break`와 `continue`는 가장 가까운 반복문에 적용됩니다. 지역 변수는 선언된 블록 안에서만 보이며 같은 범위와 부모 범위의 이름을 다시 선언할 수 없습니다.
-- `int numbers[] = [10, 20, 30]`과 `var numbers = []`는 정수 슬라이스를 만듭니다. `append(numbers, 40)`의 반환값에 원소가 하나 추가되며 이전 슬라이스의 길이와 원소 값은 유지됩니다. `numbers[0]`부터 읽을 수 있고 범위를 벗어나면 종료 코드 1과 오류를 반환합니다. 현재 슬라이스 버퍼는 프로세스 종료까지 유지합니다.
-- 숫자, `bool`, `string`은 `T?` 형태로 기본 타입 값과 `null`을 받을 수 있습니다. `nickname ?? "Unknown"`은 값이 없을 때 기본값을 평가합니다. null이 아닌 값의 직접 대입이나 `x != null`·`x == null` 분기로 값이 존재함을 확인하면 해당 범위에서 기본 타입으로 사용합니다. 재대입과 제어 흐름이 분석 결과를 바꿀 수 있습니다.
-- `struct Position { ... }`은 필드를 줄마다 선언하는 값 타입입니다. `Position(10, 20)`은 선언 순서대로 필드를 초기화하며, `pos.x`는 필드를 읽습니다. 다른 구조체를 필드로 포함하거나 구조체를 함수 인수와 반환값으로 사용할 수 있습니다. 구조체 이름이 타입을 구분하며 대입은 값을 복사합니다. 자신을 직접 또는 간접으로 값으로 포함하는 구조체는 컴파일 오류입니다.
-- 위치 초기화에서 `float` 필드는 정밀도 손실 없이 표현할 수 있는 정수 리터럴을 직접 받을 수 있습니다. `int` 변수의 값을 넣으려면 `float(value)`를 사용합니다. `pos.x = float(30)`처럼 구조체 변수의 필드에 값을 대입할 수 있습니다. `box.pos.x`처럼 중첩 필드도 대입할 수 있으며 복사본은 각각의 값을 보존합니다.
-- `foreach (item in numbers)`는 정수 슬라이스나 뷰를 한 번 평가하고, 앞에서부터 각 원소를 지역 변수 `item`에 복사합니다. `break`와 `continue`가 적용됩니다.
-- `numbers[begin:end]`는 `begin`부터 `end` 직전까지의 복사 없는 읽기 전용 뷰입니다. `0 <= begin <= end <= 길이`를 확인하며, 뷰에 인덱싱하거나 그 일부를 다시 볼 수 있습니다. 현재 뷰가 참조하는 저장소는 프로세스 종료까지 유지됩니다.
-- 정수에 `~`, `&`, `^`, `|`, `<<`, `>>`를 사용할 수 있습니다. 비트 시프트는 덧셈보다 우선순위가 낮고 순서 비교보다 높습니다. 이항 비트 연산은 동등 비교보다 낮고 논리 연산보다 높으며, `&`, `^`, `|` 순입니다. 시프트는 왼쪽 타입의 비트 폭을 사용하고, 음수 또는 비트 폭 이상의 횟수는 런타임 오류입니다. `>>`는 부호 있는 타입에서 부호 비트를 보존합니다.
-- `조건 ? 참값 : 거짓값`은 조건이 `bool`이고 두 결과의 타입이 호환되어야 합니다. 선택된 식만 평가하며 `??`보다 우선순위가 낮고 오른쪽부터 묶습니다.
-- `Position?`처럼 구조체도 nullable로 선언할 수 있습니다. `pos?.x`는 `pos`가 null이면 null을 반환하며, 값이 있으면 필드를 읽습니다. null 검사로 값이 있다고 확인한 구조체에는 직접 접근할 수 있습니다.
-- `import "modules/file.m"`은 그 문장이 있는 파일을 기준으로 상대 경로의 소스를 가져옵니다. 각 파일은 한 번만 처리하고, 각 파일은 자신과 직접·간접으로 가져온 파일의 공개 선언을 볼 수 있습니다. 파일 최상위의 함수·구조체·클래스는 기본적으로 공개이며 `public`을 명시할 수 있습니다. `private` 선언은 같은 파일에서만 보이며, 같은 파일의 선언이 가져온 공개 선언보다 우선합니다. 공개 이름이 충돌하거나 공개 선언이 비공개 타입을 노출하면 컴파일 오류입니다. 순환 가져오기와 가져온 파일 안의 `main`도 컴파일 오류입니다.
-- `readText(path)`는 UTF-8 파일을 문자열로 읽습니다. `writeText(path, text)`는 UTF-8 텍스트를 쓰고 기존 파일이 있으면 교체합니다. 두 함수의 상대 경로는 프로그램의 작업 디렉터리를 기준으로 하며, 파일 열기나 UTF-8 검증이 실패하면 런타임 오류로 종료합니다.
+- Source files are UTF-8. The compiler accepts an initial BOM and LF, CRLF, or CR line endings.
+- An executable has exactly one parameterless main() or void main(). Normal completion returns exit code 0.
+- Braces delimit blocks. Separate statements in the same block with newlines. Inside parentheses, line breaks may separate tokens. A double slash starts a comment that ends at the next line break.
+- Strings are single-line, double-quoted UTF-8 text, including empty strings. String escape syntax remains unspecified. print(value) writes a numeric, bool, or string value followed by a newline.
 
-## 시험 구현
+## Values and expressions
 
-- 지역 고정 정수 배열의 시험 표기는 `int values[3] = [10, 20, 30]`입니다. 길이는 타입의 일부이며 초기값의 개수와 일치해야 합니다. 인덱스 읽기·대입, 값 복사와 `foreach`를 지원합니다.
-- 고정 배열의 `values[0:2]`는 배열 저장소를 빌립니다. 빌린 뷰가 지역 범위에 있는 동안 해당 배열을 수정할 수 없습니다. 뷰 바인딩을 재대입하거나 함수 밖으로 반환할 수 없습니다. 힙에 저장된 기존 슬라이스 뷰는 프로세스 종료까지 저장소를 유지합니다.
-- `class`는 참조 타입입니다. 클래스 변수 대입은 객체의 참조를 복사합니다. 멤버는 기본적으로 `private`이며, 메서드 안에서 `this.field` 또는 필드 이름을 사용할 수 있습니다. `new Counter(0)`처럼 인스턴스를 생성합니다. 현재 객체는 프로세스 종료까지 유지됩니다.
-- 모든 필드에 기본값이 있으면 `new ClassName()`을 사용할 수 있습니다. 명시적 생성자는 클래스 안에 `public ClassName(타입 매개변수) { ... }`로 선언합니다. 생성자는 클래스마다 하나이며, 기본값 없는 필드는 생성자 본문의 첫 문장들에서 바로 초기화해야 합니다. 필드 기본값은 생성자 본문보다 먼저 적용됩니다.
-- `class Child : Parent`는 단일 상속입니다. 부모 클래스의 기본 생성자 또는 공개 인수 없는 생성자가 먼저 실행됩니다. 자식 참조는 부모 타입에 대입할 수 있습니다. 부모의 비공개 멤버 접근, 이름 숨김, 메서드 재정의와 다중 상속은 컴파일 오류입니다. nullable 클래스는 `?.`로 필드를 읽거나 메서드를 호출할 수 있습니다.
+- A local declaration requires an initializer. Use a type, such as int count = 10, or use var to infer it at compile time. Reassignment must respect the declared type. A local is visible within its declaring block and cannot redeclare a name in that block or a parent block.
+- Numeric types are char (unsigned 8-bit), short (signed 16-bit), int and long (each signed 32-bit), float (32-bit), and double (64-bit). Integer literals are int. A literal containing a decimal point or exponent is double. char(65) prints the byte value 65. Overload resolution for int and long remains unspecified.
+- Arithmetic and comparison use the operand type when both types match or a common type that preserves both operands' values. The common type for float and int is double. Numeric locals support compound assignment and postfix ++ and -- as statements. String equality compares UTF-8 bytes. Boolean values print as true or false.
+- Integer arithmetic wraps at the type's width. Integer division truncates toward zero. Dividing an integer by zero terminates with a runtime error. Floating-point arithmetic follows IEEE 754.
+- Implicit numeric conversions in assignment, arguments, and return values must preserve all source values and their precision. A short converts implicitly to float. Use float(value) for an int.
+- Explicit integer conversions preserve low bits. Real-to-integer conversion first rounds to the nearest integer, choosing the even integer at a tie. Converting NaN or infinity to an integer, or converting a finite double outside the float range to float, produces a runtime error and exits with code 1.
+- Integer bitwise operators are ~, &, ^, |, <<, and >>. A shift uses the left operand's width and rejects negative counts and counts at least that width. Signed right shifts preserve the sign bit.
+- Precedence runs from parentheses and postfix expressions through unary operators, multiplication and division, addition and subtraction, shifts, ordering, equality, bitwise &, ^, and |, logical && and ||, null coalescing, and the ternary conditional. Binary operators associate left, except for ??, which associates right. Logical operators and ?? skip the right operand when the left determines the result. A ternary condition must be bool, its result types must be compatible, and only the selected expression is evaluated. Ternaries associate right.
 
-## 확정 설계
+## Functions and control flow
 
-아래는 후속 버전에서 구현할 언어 설계입니다.
+- Function parameters have explicit types. Declare an explicit return type, as in int add(int a, int b), or use def to infer it. A value-returning function must return along every reachable path. Loop termination is analyzed conservatively. Recursive return type inference with circular dependencies requires an explicit return type.
+- if, elif, else, and while provide branching and loops. Conditions must be bool. for (i=0 in i++(5)) evaluates its bounds once and iterates from 0 through 4. The loop variable is local to the loop. break and continue target the nearest loop.
 
-- 함수는 `int add(int a, int b)`처럼 반환형을 명시하거나 `def add(int a, int b)`로 반환형을 추론합니다.
-- 제어문으로 `if`, `elif`, `else`, `while`, `foreach`, `break`, `continue`를 지원할 예정입니다. `for (i=0 in i++(5))`의 반복 값은 0에서 4까지입니다.
-- 산술, 비교, 논리, 대입, 증감, 비트 및 삼항 연산자를 단계적으로 추가합니다.
-- 고정 배열과 가변 슬라이스를 구분합니다. 고정 배열의 최종 표기와 범용 수명·별칭 규칙은 추후 명세에서 정합니다.
-- 변환할 수 없는 숫자 값의 런타임 오류는 예외 처리 도입 후 예외로 표현할 예정입니다.
-- 모든 타입은 기본적으로 null을 허용하지 않습니다. `T?`, `?.`, `??`와 흐름 기반 null 검사를 지원할 예정입니다.
-- 다중 클래스 상속에서 메서드 충돌은 명시적으로 해결해야 합니다. 부모 선택 문법과 객체 레이아웃은 추후 명세에서 정합니다.
+## Slices, structs, and nullability
+
+- int numbers[] = [10, 20, 30] and var numbers = [] create integer slices. append(numbers, 40) returns a slice with one more element and preserves the original slice length and elements. Indices start at zero. Out-of-bounds access terminates with exit code 1. Heap-backed slice buffers remain allocated until process exit.
+- foreach (item in numbers) evaluates its integer slice, view, or fixed array once. Each element is copied into a local loop variable in order. break and continue are supported.
+- numbers[begin:end] is a read-only, zero-copy view over the range from begin to just before end. Bounds must satisfy 0 <= begin <= end <= length. A view supports indexing and further slicing.
+- Structs are named value types. Declare fields on separate lines. Position(10, 20) initializes fields in declaration order. pos.x reads a field. Structs may contain other structs and pass through function arguments and return values. Assignment copies the value. Recursive inclusion by value is rejected.
+- A float field in positional initialization can accept an exactly representable integer literal directly. Convert an int variable explicitly with float(value). Field assignment and nested field assignment are supported. Copies preserve their own field values.
+- Types are non-nullable by default. T? allows null for supported scalar types, structs, and classes. nickname ?? "Unknown" evaluates the fallback only for null. Direct assignment or comparisons with null can establish that a value is present in a local scope. Reassignment and control flow can change this result.
+- pos?.x returns null for a null receiver and reads the field otherwise. Nullable class receivers also support safe method calls. A null check that establishes a struct value is present allows direct field access.
+
+## Imports and file I/O
+
+- import "modules/file.m" resolves a relative path from the importing file. Each file is processed once. A file sees its own declarations and the public declarations of files imported directly or transitively.
+- Top-level functions, structs, and classes are public by default. public makes this explicit. private limits visibility to the declaring file. Local file declarations take precedence over imported public declarations. Conflicting public names, public declarations exposing private types, import cycles, and an imported main are compile errors.
+- readText(path) reads a UTF-8 file into a string. writeText(path, text) writes UTF-8 and replaces an existing file. Relative paths use the program's working directory. I/O errors and invalid UTF-8 cause runtime errors.
+
+## Experimental fixed arrays and classes
+
+- A local fixed integer array can be declared as int values[3] = [10, 20, 30]. The length is part of its type and must match the initializer. Arrays support indexed reads and writes, value copies, and foreach.
+- A view of a fixed array borrows its storage. The array cannot be written while that view is in local scope. The borrowed binding cannot be reassigned or returned from the function.
+- A class is a reference type. Assignment copies the reference. Members are private by default. Methods can use this.field or the field name. new Counter(0) creates an instance. Class objects remain allocated until process exit.
+- A class whose fields all have defaults can use new ClassName(). Declare one explicit constructor with public ClassName(typedParameters) { ... }. Field defaults run before the constructor body. Fields without defaults must be initialized directly in the first statements of the constructor.
+- class Child : Parent provides single inheritance. The base default constructor or public zero-argument constructor runs first. A child reference can be assigned to the base type. Access to private base members, member hiding, method overriding, and multiple inheritance are compile errors.
+
+The final fixed array notation and general lifetime and aliasing rules are open. Exception handling is planned for invalid conversions. Multiple inheritance is a future design in which method conflicts must be resolved explicitly. Base selection syntax and layout remain open.

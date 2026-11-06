@@ -1,8 +1,8 @@
-#include "melang/lexer.hpp"
+#include "moulang/lexer.hpp"
 
 #include <utility>
 
-namespace melang {
+namespace moulang {
 namespace {
 bool identifierStart(char c) {
     return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_';

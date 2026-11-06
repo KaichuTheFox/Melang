@@ -1,12 +1,12 @@
-#include "melang/driver.hpp"
-#include "melang/object.hpp"
+#include "moulang/driver.hpp"
+#include "moulang/object.hpp"
 #include "toolchain.hpp"
 
 #include <Windows.h>
 #include <system_error>
 #include <vector>
 
-namespace melang {
+namespace moulang {
 namespace {
 namespace fs = std::filesystem;
 
@@ -17,7 +17,7 @@ namespace fs = std::filesystem;
 class StagingDirectory {
 public:
     explicit StagingDirectory(const fs::path& parent) {
-        const auto prefix = L".melang-" + std::to_wstring(GetCurrentProcessId()) + L"-";
+        const auto prefix = L".moulang-" + std::to_wstring(GetCurrentProcessId()) + L"-";
         for (unsigned attempt = 0; ; ++attempt) {
             path = parent / (prefix + std::to_wstring(attempt));
             if (fs::create_directory(path)) {
@@ -42,7 +42,7 @@ fs::path compilerDirectory() {
     for (;;) {
         const DWORD size = GetModuleFileNameW(nullptr, path.data(), static_cast<DWORD>(path.size()));
         if (!size) {
-            windowsError("Cannot find melang.exe");
+            windowsError("Cannot find moulang.exe");
         }
         if (size < path.size()) {
             path.resize(size);
@@ -97,10 +97,10 @@ DWORD launch(const fs::path& executable, const std::vector<std::wstring>& args, 
 fs::path compileAndLink(const Program& program, const fs::path& stage, Optimization optimization) {
     emitObject(program, stage / L"program.obj", optimization);
     // Local ASCII arguments also work when the project directory has a Unicode name.
-    fs::copy_file(compilerDirectory() / L"melang_runtime.lib", stage / L"melang_runtime.lib");
+    fs::copy_file(compilerDirectory() / L"moulang_runtime.lib", stage / L"moulang_runtime.lib");
     const DWORD status = launch(linkerPath, {
-        L"/NOLOGO", L"/MACHINE:X64", L"/SUBSYSTEM:CONSOLE", L"/ENTRY:melang_entry", L"/NODEFAULTLIB",
-        L"/OUT:program.exe", L"program.obj", L"melang_runtime.lib", kernel32Path,
+        L"/NOLOGO", L"/MACHINE:X64", L"/SUBSYSTEM:CONSOLE", L"/ENTRY:moulang_entry", L"/NODEFAULTLIB",
+        L"/OUT:program.exe", L"program.obj", L"moulang_runtime.lib", kernel32Path,
         staticCrtPath, staticCppPath, staticVcruntimePath
     }, stage);
     if (status != 0) {

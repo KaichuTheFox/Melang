@@ -1,7 +1,7 @@
 #pragma once
 
-#include "melang/ast.hpp"
+#include "moulang/ast.hpp"
 
-namespace melang {
+namespace moulang {
 void analyze(Program& program, bool requireMain = true);
 }

@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace melang {
+namespace moulang {
 struct Location {
     std::size_t line = 1;
     std::size_t column = 1;

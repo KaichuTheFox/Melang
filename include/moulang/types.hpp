@@ -3,7 +3,7 @@
 #include <string_view>
 #include <cstdint>
 
-namespace melang {
+namespace moulang {
 enum class Type : std::uint32_t {
     inferred, byte, shortInt, integer, longInt, float32, float64, boolean, string, intSlice, intView,
     borrowedIntView, none,

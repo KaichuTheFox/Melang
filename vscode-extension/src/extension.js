@@ -6,7 +6,7 @@ const { registerLiveDiagnostics } = require('./diagnostics');
 
 function activate(context) {
     registerLiveDiagnostics(context);
-    const selector = [{ language: 'melang', scheme: 'file' }, { language: 'melang', scheme: 'untitled' }];
+    const selector = [{ language: 'moulang', scheme: 'file' }, { language: 'moulang', scheme: 'untitled' }];
     context.subscriptions.push(
         vscode.languages.registerCompletionItemProvider(selector, {
             provideCompletionItems(document, position) {
@@ -27,27 +27,27 @@ function activate(context) {
                     });
             }
         }),
-        vscode.commands.registerCommand('melang.run', async () => {
+        vscode.commands.registerCommand('moulang.run', async () => {
             const document = vscode.window.activeTextEditor?.document;
-            if (document?.languageId !== 'melang' || document.uri.scheme !== 'file') {
-                vscode.window.showErrorMessage('Open a saved Melang (.m) file to run it.');
+            if (document?.languageId !== 'moulang' || document.uri.scheme !== 'file') {
+                vscode.window.showErrorMessage('Open a saved Moulang (.m) file to run it.');
                 return;
             }
             const folder = vscode.workspace.getWorkspaceFolder(document.uri);
             if (!folder) {
-                vscode.window.showErrorMessage('Open the folder containing this Melang file before running it.');
+                vscode.window.showErrorMessage('Open the folder containing this Moulang file before running it.');
                 return;
             }
             if (document.isDirty && !(await document.save())) {
-                vscode.window.showErrorMessage('Save the Melang file before running it.');
+                vscode.window.showErrorMessage('Save the Moulang file before running it.');
                 return;
             }
 
-            const executable = vscode.workspace.getConfiguration('melang', document.uri).get('executablePath');
+            const executable = vscode.workspace.getConfiguration('moulang', document.uri).get('executablePath');
             const execution = new vscode.ProcessExecution(executable, ['run', document.uri.fsPath], {
                 cwd: path.dirname(document.uri.fsPath)
             });
-            const task = new vscode.Task({ type: 'melang' }, folder, 'Run current file', 'Melang', execution, ['$melang']);
+            const task = new vscode.Task({ type: 'moulang' }, folder, 'Run current file', 'Moulang', execution, ['$moulang']);
             task.presentationOptions = { reveal: vscode.TaskRevealKind.Always };
             return vscode.tasks.executeTask(task);
         })

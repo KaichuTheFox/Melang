@@ -1,3 +1,3 @@
 main() {
-    print("Hello Melang!")
+    print("Hello Moulang!")
 }

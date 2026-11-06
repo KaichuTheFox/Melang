@@ -1,10 +1,10 @@
 #pragma once
 
-#include "melang/source.hpp"
+#include "moulang/source.hpp"
 
 #include <string_view>
 
-namespace melang {
+namespace moulang {
 enum class TokenKind {
     identifier, string, integer, real, operation, leftParen, rightParen, leftBrace, rightBrace,
     leftBracket, rightBracket, comma, dot, safeDot, colon, newline, end

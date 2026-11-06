@@ -1,4 +1,4 @@
-#include "melang/object.hpp"
+#include "moulang/object.hpp"
 
 #include <llvm-c/Analysis.h>
 #include <llvm-c/Core.h>
@@ -11,7 +11,7 @@
 #include <type_traits>
 #include <unordered_map>
 
-namespace melang {
+namespace moulang {
 namespace {
 template<class Ref, auto Dispose>
 using LLVMOwner = std::unique_ptr<std::remove_pointer_t<Ref>, decltype([](Ref ref) { Dispose(ref); })>;
@@ -30,7 +30,7 @@ public:
     void emit(const Program& program) {
         sourceNames_ = &program.sourceNames;
         for (const auto& structure : program.structures) {
-            const auto name = "melang.struct." + structure.name;
+            const auto name = "moulang.struct." + structure.name;
             structures_.emplace(structure.type, StructureSymbol{
                 LLVMStructCreateNamed(context_, name.c_str()), structure
             });
@@ -43,7 +43,7 @@ public:
             if (structure.reference) {
                 LLVMTypeRef parameters[] = {type(structure.type)};
                 const auto signature = LLVMFunctionType(type(Type::none), parameters, 1, false);
-                const auto name = "melang.init." + std::to_string(static_cast<std::uint32_t>(structure.type));
+                const auto name = "moulang.init." + std::to_string(static_cast<std::uint32_t>(structure.type));
                 const auto initializer = LLVMAddFunction(module_, name.c_str(), signature);
                 LLVMSetLinkage(initializer, LLVMInternalLinkage);
                 initializers_.emplace(structure.type, initializer);
@@ -55,7 +55,7 @@ public:
             const auto signature = LLVMFunctionType(type(function.result), parameters.data(),
                 static_cast<unsigned>(parameters.size()), false);
             const bool entry = function.name == "main";
-            const auto name = entry ? "melang_main" : "melang.fn." + std::to_string(function.location.file) +
+            const auto name = entry ? "moulang_main" : "moulang.fn." + std::to_string(function.location.file) +
                 "." + std::to_string(static_cast<std::uint32_t>(function.owner)) +
                 (function.constructor ? ".ctor." : ".") + function.name;
             const auto symbol = LLVMAddFunction(module_, name.c_str(), signature);
@@ -140,7 +140,7 @@ private:
         case Type::borrowedIntView:
         case Type::intSlice: return string_;
         case Type::none: return LLVMVoidTypeInContext(context_);
-        default: throw std::logic_error("Unresolved Melang type.");
+        default: throw std::logic_error("Unresolved Moulang type.");
         }
     }
 
@@ -149,11 +149,11 @@ private:
         if (LLVMTypeOf(value) == target) return value;
         if (realType(source)) {
             if (realType(destination)) {
-                if (destination == Type::float32) return call("melang_narrow_real", target, {value});
+                if (destination == Type::float32) return call("moulang_narrow_real", target, {value});
                 return LLVMBuildFPExt(builder_, value, target, "");
             }
             const auto widened = LLVMBuildFPCast(builder_, value, type(Type::float64), "");
-            const auto bits = call("melang_real_to_int", integer_, {widened});
+            const auto bits = call("moulang_real_to_int", integer_, {widened});
             return LLVMBuildIntCast2(builder_, bits, target, false, "");
         }
         const bool signedSource = source != Type::byte;
@@ -346,16 +346,16 @@ private:
         const auto& path = sourceNames_->at(location.file);
         const auto text = stringLiteral(path + ':' + std::to_string(location.line) + ':' +
             std::to_string(location.column) + ": ");
-        call("melang_set_error_site", type(Type::none), {field(text, 0), field(text, 1)});
+        call("moulang_set_error_site", type(Type::none), {field(text, 0), field(text, 1)});
     }
 
     LLVMValueRef collectionGet(Type sourceType, LLVMValueRef collection, LLVMValueRef index) {
         if (fixedIntArrayType(sourceType)) {
-            auto checked = call("melang_checked_array_index", integer_, {index, field(collection, 1)});
+            auto checked = call("moulang_checked_array_index", integer_, {index, field(collection, 1)});
             const auto element = LLVMBuildGEP2(builder_, integer_, field(collection, 0), &checked, 1, "");
             return LLVMBuildLoad2(builder_, integer_, element, "");
         }
-        const auto name = sourceType == Type::intSlice ? "melang_slice_get" : "melang_view_get";
+        const auto name = sourceType == Type::intSlice ? "moulang_slice_get" : "moulang_view_get";
         return call(name, integer_, {field(collection, 0), field(collection, 1), index});
     }
 
@@ -379,13 +379,13 @@ private:
         if (expr.type == Type::none) {
             const auto text = expression(*expr.arguments[1]);
             errorSite(expr.location);
-            return call("melang_write_text", none, {field(path, 0), field(path, 1), field(text, 0), field(text, 1)});
+            return call("moulang_write_text", none, {field(path, 0), field(path, 1), field(text, 0), field(text, 1)});
         }
         const auto result = allocate(Type::string, "read.text");
         const auto data = LLVMBuildStructGEP2(builder_, string_, result, 0, "");
         const auto length = LLVMBuildStructGEP2(builder_, string_, result, 1, "");
         errorSite(expr.location);
-        call("melang_read_text", none, {field(path, 0), field(path, 1), data, length});
+        call("moulang_read_text", none, {field(path, 0), field(path, 1), data, length});
         return LLVMBuildLoad2(builder_, string_, result, "");
     }
 
@@ -400,7 +400,7 @@ private:
             const auto index = expression(*target.right);
             const auto length = LLVMConstInt(integer_, fixedIntArrayLength(target.left->type), false);
             errorSite(target.location);
-            const auto checked = call("melang_checked_array_index", integer_, {index, length});
+            const auto checked = call("moulang_checked_array_index", integer_, {index, length});
             LLVMValueRef indices[] = {LLVMConstNull(integer_), checked};
             return LLVMBuildGEP2(builder_, type(target.left->type), base, indices, 2, "");
         }
@@ -456,7 +456,7 @@ private:
 
     LLVMValueRef append(LLVMValueRef slice, LLVMValueRef item) {
         const auto size = field(slice, 1);
-        const auto data = call("melang_slice_append", LLVMPointerTypeInContext(context_, 0),
+        const auto data = call("moulang_slice_append", LLVMPointerTypeInContext(context_, 0),
             {field(slice, 0), size, item});
         const auto extended = LLVMBuildInsertValue(builder_, slice, data, 0, "");
         const auto length = LLVMBuildAdd(builder_, size, LLVMConstInt(integer_, 1, false), "");
@@ -466,15 +466,15 @@ private:
     void print(Type type, LLVMValueRef value) {
         const auto none = LLVMVoidTypeInContext(context_);
         if (type == Type::string) {
-            call("melang_print", none, {LLVMBuildExtractValue(builder_, value, 0, ""),
+            call("moulang_print", none, {LLVMBuildExtractValue(builder_, value, 0, ""),
                 LLVMBuildExtractValue(builder_, value, 1, "")});
         } else if (type == Type::boolean) {
-            call("melang_print_bool", none, {LLVMBuildZExt(builder_, value, integer_, "")});
+            call("moulang_print_bool", none, {LLVMBuildZExt(builder_, value, integer_, "")});
         } else if (realType(type)) {
-            const auto name = type == Type::float32 ? "melang_print_float" : "melang_print_double";
+            const auto name = type == Type::float32 ? "moulang_print_float" : "moulang_print_double";
             call(name, none, {value});
         } else {
-            call("melang_print_int", none, {numericCast(value, type, Type::integer)});
+            call("moulang_print_int", none, {numericCast(value, type, Type::integer)});
         }
     }
 
@@ -527,14 +527,14 @@ private:
             const auto width = LLVMConstInt(integer_, integerBits(expr.type), false);
             const auto count = numericCast(right, expr.right->type, Type::integer);
             errorSite(expr.location);
-            const auto checked = call("melang_shift_count", integer_, {count, width});
+            const auto checked = call("moulang_shift_count", integer_, {count, width});
             const auto offset = numericCast(checked, Type::integer, expr.type);
             if (op == "<<") return LLVMBuildShl(builder_, left, offset, "");
             if (expr.type == Type::byte) return LLVMBuildLShr(builder_, left, offset, "");
             return LLVMBuildAShr(builder_, left, offset, "");
         }
         if (expr.left->type == Type::string) {
-            const auto equal = call("melang_string_equal", integer_,
+            const auto equal = call("moulang_string_equal", integer_,
                 {field(left, 0), field(left, 1), field(right, 0), field(right, 1)});
             const auto predicate = op == "==" ? LLVMIntNE : LLVMIntEQ;
             return LLVMBuildICmp(builder_, predicate, equal, LLVMConstNull(integer_), "");
@@ -571,7 +571,7 @@ private:
         if (op == "^") return LLVMBuildXor(builder_, left, right, "");
         if (op == "*") return LLVMBuildMul(builder_, left, right, "");
         if (op == "/") {
-            const auto quotient = call("melang_divide", integer_,
+            const auto quotient = call("moulang_divide", integer_,
                 {numericCast(left, operand, Type::integer), numericCast(right, operand, Type::integer)});
             return numericCast(quotient, Type::integer, operand);
         }
@@ -632,8 +632,8 @@ private:
             errorSite(expr.location);
             const auto pointer = LLVMPointerTypeInContext(context_, 0);
             auto data = field(source, 0);
-            if (expr.left->type == Type::intSlice) data = call("melang_slice_data", pointer, {data});
-            const auto start = call("melang_view_start", pointer, {data, field(source, 1), begin, end});
+            if (expr.left->type == Type::intSlice) data = call("moulang_slice_data", pointer, {data});
+            const auto start = call("moulang_view_start", pointer, {data, field(source, 1), begin, end});
             const auto length = LLVMBuildSub(builder_, end, begin, "");
             const auto tagged = LLVMBuildInsertValue(builder_, LLVMGetUndef(type(Type::intView)), start, 0, "");
             return LLVMBuildInsertValue(builder_, tagged, length, 1, "");
@@ -671,7 +671,7 @@ private:
                 ? nullptr : &functions_.at(expr.functionIndex);
             if (constructor) appendArguments(expr, constructor->declaration, args);
             errorSite(expr.location);
-            const auto object = call("melang_allocate_object", type(expr.type), {LLVMSizeOf(layout(expr.type))});
+            const auto object = call("moulang_allocate_object", type(expr.type), {LLVMSizeOf(layout(expr.type))});
             std::vector<LLVMValueRef> receiver{object};
             invoke(initializers_.at(expr.type), receiver);
             if (constructor) {
@@ -750,7 +750,7 @@ void emitObject(const Program& program, const std::filesystem::path& path, Optim
 
     LLVMOwner<LLVMContextRef, LLVMContextDispose> context(LLVMContextCreate());
     LLVMOwner<LLVMModuleRef, LLVMDisposeModule> module(
-        LLVMModuleCreateWithNameInContext("melang", context.get()));
+        LLVMModuleCreateWithNameInContext("moulang", context.get()));
     LLVMSetTarget(module.get(), triple);
 
     LLVMTargetRef target = nullptr;

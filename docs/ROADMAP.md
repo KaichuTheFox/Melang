@@ -1,9 +1,9 @@
-# 개발 로드맵
+# Development roadmap
 
-1. **Phase 1** — Windows x64 네이티브 빌드와 실행, 문자열 출력, 기본 VS Code 통합.
-2. **Phase 2** — `int`, `bool`, `string` 값과 지역 변수, 재대입, 산술과 비교, 연산자 우선순위, 정적 타입 검사 및 숫자 출력. 기존 빌드·실행 테스트에 타입 오류와 표현식 사례를 추가합니다.
-3. **Phase 3** — 사용자 함수, `return`, 함수 호출, `def`, 분기, `while` 및 머랭 전용 `for`.
-4. **Phase 4** — 배열과 슬라이스, 구조체와 클래스, 생성자, 모듈, 표준 라이브러리와 파일 입출력.
-5. **Phase 5** — null 안전성, 정밀한 형변환, 예외, GC, 소유권과 뷰 검사, 다중 상속, 제네릭과 저수준 메모리 기능.
+1. Native Windows x64 compilation, string output, and basic VS Code integration.
+2. Local variables, static type checks, operator precedence, arithmetic, and numeric output.
+3. Functions, return type inference, branching, and loops.
+4. Arrays and slices, structs, classes, constructors, imports, and file I/O.
+5. Null safety, numeric conversions, exceptions, garbage collection, ownership and view checks, multiple inheritance, generics, and low-level memory features.
 
-후속 작업에는 LLVM 최적화 옵션과 벤치마크, VS Code 언어 서버, 배포 패키지가 포함됩니다.
+Some phases have partial implementations. See the [implementation status](IMPLEMENTATION_STATUS.md) for what is available. Further tooling work includes benchmarks, a VS Code language server, and a Windows compiler installer.

@@ -1,13 +1,13 @@
 #pragma once
 
-#include "melang/source.hpp"
-#include "melang/types.hpp"
+#include "moulang/source.hpp"
+#include "moulang/types.hpp"
 
 #include <cstdint>
 #include <memory>
 #include <vector>
 
-namespace melang {
+namespace moulang {
 enum class ExpressionKind { integer, real, boolean, string, variable, unary, binary, call, slice, subscript,
     member, safeMember, methodCall, safeMethodCall, constructObject, view, conditional, nullLiteral };
 

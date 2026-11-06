@@ -1,9 +1,9 @@
-#include "melang/parser.hpp"
+#include "moulang/parser.hpp"
 
 #include <iterator>
 #include <optional>
 
-namespace melang {
+namespace moulang {
 namespace {
 namespace fs = std::filesystem;
 

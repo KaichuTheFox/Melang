@@ -25,7 +25,7 @@ function Check($Result, [int] $Code, [string] $Expected) {
 function Check-RuntimeError([string] $Name, [string] $Message, [string] $File = $Name,
     [string] $Coordinates = '\d+:\d+') {
     $result = Invoke-Native $Compiler @('run', $Name)
-    $expected = [regex]::Escape($File) + ':' + $Coordinates + ': Melang runtime: ' + [regex]::Escape($Message) + '$'
+    $expected = [regex]::Escape($File) + ':' + $Coordinates + ': Moulang runtime: ' + [regex]::Escape($Message) + '$'
     if ($result.Code -ne 1 -or $result.Text -notmatch $expected) {
         throw "Expected runtime diagnostic in $File, got $($result.Code) and [$($result.Text)]."
     }
@@ -44,15 +44,15 @@ Push-Location $workspace
 try {
     $env:TEMP = $workspace
     $env:TMP = $workspace
-    Check (Invoke-Native $Compiler @('--version')) 0 'Melang 0.1.0'
+    Check (Invoke-Native $Compiler @('--version')) 0 'Moulang 0.1.1'
     $help = Invoke-Native $Compiler @('--help')
     if ($help.Code -ne 0 -or $help.Text -notmatch '^Usage:') {
         throw "Expected CLI help, got $($help.Text)"
     }
     Copy-Item -LiteralPath $Hello -Destination hello.m
-    Check (Invoke-Native $Compiler @('run', 'hello.m')) 0 'Hello Melang!'
+    Check (Invoke-Native $Compiler @('run', 'hello.m')) 0 'Hello Moulang!'
     Check (Invoke-Native $Compiler @('build', 'hello.m')) 0 ''
-    Check (Invoke-Native '.\hello.exe' @()) 0 'Hello Melang!'
+    Check (Invoke-Native '.\hello.exe' @()) 0 'Hello Moulang!'
 
     $expressions = @'
 main() {
@@ -168,7 +168,7 @@ string echo(string text) { return text }
 main() {
     string? nickname = null
     print(nickname ?? "Unknown")
-    nickname = "Melang"
+    nickname = "Moulang"
     if (nickname != null) { print(nickname) }
     if (null == nickname) { print("unreachable") }
     else { print(nickname) }
@@ -192,7 +192,7 @@ int? maybe(bool present, int n) {
 bool isNull(bool? value) { return value == null }
 '@
     [IO.File]::WriteAllText((Join-Path $workspace 'nullable.m'), $nulls, $utf8)
-    $nullOutput = @('Unknown', 'Melang', 'Melang', '5', '9', 'true', 'false', '17', '5', '5') -join "`n"
+    $nullOutput = @('Unknown', 'Moulang', 'Moulang', '5', '9', 'true', 'false', '17', '5', '5') -join "`n"
     Check (Invoke-Native $Compiler @('run', 'nullable.m')) 0 $nullOutput
     Check (Invoke-Native $Compiler @('build', 'nullable.m')) 0 ''
     Check (Invoke-Native '.\nullable.exe' @()) 0 $nullOutput
@@ -565,7 +565,7 @@ void main(
     }
 
     $env:PATH = "$(Split-Path -Parent $Compiler);$env:PATH"
-    Check (Invoke-Native 'cmd.exe' @('/d', '/c', 'melang run hello.m')) 0 'Hello Melang!'
+    Check (Invoke-Native 'cmd.exe' @('/d', '/c', 'moulang run hello.m')) 0 'Hello Moulang!'
 
     Check-Error 'token.m' 'main() { @ }' 'token\.m:1:10: error ML1001'
     Check-Error 'string.m' 'main() { print("hi) }' 'ML1002'
@@ -675,7 +675,7 @@ void main(
     if ($overwrite.Code -ne 1 -or $overwrite.Text -notmatch 'overwrite the source file') {
         throw "Expected source overwrite diagnostic, got $($overwrite.Text)"
     }
-    Check (Invoke-Native $Compiler @('run', 'hello.m')) 0 'Hello Melang!'
+    Check (Invoke-Native $Compiler @('run', 'hello.m')) 0 'Hello Moulang!'
 }
 finally {
     Pop-Location

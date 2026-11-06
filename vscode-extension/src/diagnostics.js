@@ -24,14 +24,14 @@ function diagnosticsFor(document, stderr) {
         const range = new vscode.Range(lineNumber, start, lineNumber, end);
         const diagnostic = new vscode.Diagnostic(range, match[5], vscode.DiagnosticSeverity.Error);
         diagnostic.code = match[4];
-        diagnostic.source = 'Melang Check';
+        diagnostic.source = 'Moulang Check';
         results.push(diagnostic);
     }
     return results;
 }
 
 function registerLiveDiagnostics(context) {
-    const collection = vscode.languages.createDiagnosticCollection('melang-live');
+    const collection = vscode.languages.createDiagnosticCollection('moulang-live');
     const pending = new Map();
 
     function cancel(key) {
@@ -43,10 +43,10 @@ function registerLiveDiagnostics(context) {
     }
 
     function schedule(document) {
-        if (document.languageId !== 'melang' || document.uri.scheme !== 'file') return;
+        if (document.languageId !== 'moulang' || document.uri.scheme !== 'file') return;
         const key = document.uri.toString();
         cancel(key);
-        const config = vscode.workspace.getConfiguration('melang', document.uri);
+        const config = vscode.workspace.getConfiguration('moulang', document.uri);
         const executable = config.get('executablePath');
         if (!vscode.workspace.isTrusted || !vscode.workspace.getWorkspaceFolder(document.uri) ||
             !config.get('liveDiagnostics') || !executable || executable.includes('\0')) {
@@ -83,7 +83,7 @@ function registerLiveDiagnostics(context) {
             collection.delete(document.uri);
         }),
         vscode.workspace.onDidChangeConfiguration(event => {
-            if (event.affectsConfiguration('melang')) vscode.workspace.textDocuments.forEach(schedule);
+            if (event.affectsConfiguration('moulang')) vscode.workspace.textDocuments.forEach(schedule);
         }),
         { dispose: () => pending.forEach((_, key) => cancel(key)) }
     );
